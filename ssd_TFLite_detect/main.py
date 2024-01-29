@@ -214,9 +214,10 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
     num_frame_to_detect = 4
 
     while(True):
-        time.sleep(0.02)
-        if RESULT_LED:
-            time.sleep(0.02)
+        start_time = time.time()
+        # time.sleep(0.02)
+        # if RESULT_LED:
+        #     # time.sleep(0.02)
         # print("Start \n")
         # Acquire frame and resize to expected shape [1xHxWx3]
         frame = videostream.read()
@@ -249,6 +250,9 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
             # if len(scores)==0:
             #     count=-1
         count+=1
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"thread camera {elapsed_time:.2f} seconds. ")
         # print(count)
         # frame = polygon_cal.draw_polygon(frame)
         # frame = cv2.circle( frame, (polygon_cal.points['right_check'][0], polygon_cal.points['right_check'][1]), 5, (0,255,255), -1)
@@ -267,6 +271,7 @@ def detect_lidar(ser,angle_min,angle_max,total_points,lidar_thread_event):
     while True:
         i=0
         if CHECK_CAM :
+            start_time = time.time()
             ser = serial.Serial(port='/dev/ttyS0',
                 baudrate=230400,
                 timeout=5.0,
@@ -332,6 +337,9 @@ def detect_lidar(ser,angle_min,angle_max,total_points,lidar_thread_event):
                 i += 1
                 if i ==100:
                     ser.close()
+                    end_time = time.time()
+                    elapsed_time = end_time - start_time
+                    print(f"thread lidar {elapsed_time:.2f} seconds")
                     break
             LidarData = {"datalida":list_lidar_point[:total_points]}
             result_queue_lidar = LidarData
@@ -358,7 +366,7 @@ def result_led_left():
 
 
 
-def COntrol_leds(num_led_right=17, num_led_left=27, num_led_warning=22):
+def COntrol_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
     global OUTPUT_LEDS
 
     GPIO.setmode(GPIO.BCM)
@@ -386,6 +394,8 @@ def COntrol_leds(num_led_right=17, num_led_left=27, num_led_warning=22):
         # GPIO.output(num_led_warning,GPIO.HIGH)
         # OUTPUT_LEDS = [1,1,1]
         # print(OUTPUT_LEDS)
+        time.sleep(0.3) 
+        start_time = time.time()
         if sum(OUTPUT_LEDS) > 0:
             if OUTPUT_LEDS[0] > 0:
                 GPIO.output(num_led_right,GPIO.HIGH) #GPIO.LOW
@@ -407,11 +417,14 @@ def COntrol_leds(num_led_right=17, num_led_left=27, num_led_warning=22):
                     GPIO.output(num_led_left,GPIO.HIGH)
                 if OUTPUT_LEDS[2] > 1:
                     GPIO.output(num_led_warning,GPIO.LOW)
-                time.sleep(0.5) 
+                time.sleep(0.1) 
         else:
             GPIO.output(num_led_right,GPIO.LOW)
             GPIO.output(num_led_left,GPIO.HIGH)
             GPIO.output(num_led_warning,GPIO.LOW)
+        end_time = time.time()
+        # elapsed_time = end_time - start_time
+        # print(f"thread led {elapsed_time:.2f} seconds")
     
 
  # [RIGHT,LEFT,Warning]  on:1 off:0: blick : 2
@@ -512,7 +525,8 @@ def main_process():
     
     index_count = 0
     while True:
-
+        
+        start_time = time.time()
         if CHECK_CAM:
 
             camera_result = result_queue_cam
@@ -525,8 +539,8 @@ def main_process():
             }
             results_received_count = 1
             if camera_result['Left'] or camera_result['Right'] : 
-                results_received_count=2
-                All_result['Lidar_infor'] = False
+                results_received_count=1
+                All_result['Lidar_infor'] = True
 
         if CHECK_LIDAR and results_received_count <2:
             lidar_result = result_queue_lidar
@@ -595,6 +609,7 @@ def main_process():
 
             #     if sum(CHECK_FRAME_RIGHT)/NUM_Check_Lidar >ON_THRESHOLD :
             # #         TEMP_LED[0] = 1
+
             # if sum(CHECK_FRAME_RIGHT)/NUM_Check_Lidar <OFF_THRESHOLD :
             #         TEMP_LED[0] = 0
             # if sum(CHECK_FRAME_RIGHT)/NUM_Check_Lidar >ON_THRESHOLD :
@@ -650,6 +665,10 @@ def main_process():
             lidar_thread_event.clear()
            
             results_received_count = 0  # Reset the counter
+
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"thread main loop {elapsed_time:.2f} seconds")
 
         # Press 'q' to quit
         time.sleep(0.02)

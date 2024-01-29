@@ -94,7 +94,7 @@ while True:
         flag2c = False
 
     i += 1
-    if i ==3000:
+    if i ==5000:
         break
 file_path = "lidar_infor.json"
 with open(file_path,'w') as json_file:

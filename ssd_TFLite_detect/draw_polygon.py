@@ -132,21 +132,26 @@ while(True):
     cv2.setMouseCallback('Object detector', handle_point_click, POINTS)
     # cv2.setMouseCallback('Object detector', handle_right_click, POINTS['POINT'] )
 
-    if cv2.waitKey(1) == ord('a'):
+    key = cv2.waitKeyEx(1)
+    if key == ord('a'):
         POINTS['area'] = POINTS['left']
         POINTS['left'] = []
         
-    if cv2.waitKey(1) == ord('p'):
+    elif key == ord('p'):
         POINTS['POINT_RIGHT'] = POINTS['POINT_LEFT']
 
     # Press 'q' to quit
-    if cv2.waitKey(5) == ord('q'):
+    elif key == ord('q'):
         break
     
-    if cv2.waitKey(2) == ord('t'):
+    elif key == ord('t'):
         print("draw left road \n")
         POINTS['right'] = POINTS['left'] 
         POINTS['left'] = []
+
+
+
+
 
 # Clean up
 cv2.destroyAllWindows()
