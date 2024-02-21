@@ -9,6 +9,7 @@ import importlib.util
 import json
 import time
 from threading import Thread
+from video_stream import VideoStream
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
@@ -19,46 +20,6 @@ parser.add_argument('--video', help='Name of the video file',default='4K_road_tr
 parser.add_argument('--path_save_json', help='Path save polygon jon',default="polygon.json")
 
 args = parser.parse_args()
-
-class VideoStream:
-    """Camera object that controls video streaming"""
-    def __init__(self,resolution=(640,480),framerate=30,STREAM_URL=''):
-        # Initialize the PiCamera and the camera image stream
-        self.stream = cv2.VideoCapture(STREAM_URL)
-        ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-        ret = self.stream.set(3,resolution[0])
-        ret = self.stream.set(4,resolution[1])
-            
-        # Read first frame from the stream
-        (self.grabbed, self.frame) = self.stream.read()
-
-	# Variable to control when the camera is stopped
-        self.stopped = False
-
-    def start(self):
-	# Start the thread that reads frames from the video stream
-        Thread(target=self.update,args=()).start()
-        return self
-
-    def update(self):
-        # Keep looping indefinitely until the thread is stopped
-        while True:
-            # If the camera is stopped, stop the thread
-            if self.stopped:
-                # Close camera resources
-                self.stream.release()
-                return
-
-            # Otherwise, grab the next frame from the stream
-            (self.grabbed, self.frame) = self.stream.read()
-
-    def read(self):
-	# Return the most recent frame
-        return self.frame
-
-    def stop(self):
-	# Indicate that the camera and thread should be stopped
-        self.stopped = True
 
 # Open video file
 VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
@@ -115,11 +76,8 @@ while(True):
 
     # Acquire frame and resize to expected shape [1xHxWx3]
     frame = videostream.read()
-
-    # cv2.imshow("Frame",frame)
-
-    # frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame_resized = cv2.resize(frame, (WIDTH_VIDEO, HEIGHT_VIDEO))
+    # frame_resized = cv2.resize(frame, (WIDTH_VIDEO, HEIGHT_VIDEO))
+    frame_resized = frame
     # input_data = np.expand_dims(frame_resized, axis=0)
 
     # Ve ploygon

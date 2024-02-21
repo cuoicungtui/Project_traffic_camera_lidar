@@ -149,13 +149,13 @@ class polygon_calculate():
                 point_Infor['Left'] = True
                 if self.distance(point_new,point_old,self.points['left_check']) > 0:
                     point_Infor['Forbidden_left'] = True
-                elif self.distance(point_new,point_old,self.points['left_check']) ==0:
+                elif self.distance(point_new,point_old,self.points['left_check']) ==0: # dang ngu
                     point_Infor['freeze'] = True
             elif self.isInside(polygon['right'], point_new):
                 point_Infor['Right'] = True
                 if self.distance(point_new,point_old,self.points['right_check'])>0:
                     point_Infor['Forbidden_right'] = True
-                elif self.distance(point_new,point_old,self.points['right_check'])==0 :
+                elif self.distance(point_new,point_old,self.points['right_check'])==0 : # kinda stupid
                     point_Infor['freeze'] = True
             # print('KC : ',,"\n")
         return point_Infor

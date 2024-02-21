@@ -17,9 +17,9 @@ total_distance = 2000
 
 i = 0
 angle_old = 0
-list_lidar_point = np.zeros(150)
-angle_min = 200.0
-angle_max = 240.0
+list_lidar_point = np.zeros(1000)
+angle_min = 260.0
+angle_max = 280.0
 
 data = {
     "angle_min" : angle_min,
@@ -31,7 +31,7 @@ data = {
 
 
 index_lidar = 0
-
+start_time = time.time()
 while True:
     loopFlag = True
     flag2c = False
@@ -40,7 +40,7 @@ while True:
     
 
     while loopFlag:
-
+      
         b = ser.read()
         tmpInt = int.from_bytes(b, 'big')
 
@@ -64,7 +64,6 @@ while True:
             # print(f"lidar information: start {lidarData.Angle_i[0]} end {lidarData.Angle_i[11]} len_distance {len(lidarData.Distance_i)} \n")
             # add point lidar
             
-            
             for angle,distance in zip(lidarData.Angle_i,lidarData.Distance_i):
                 if angle > angle_min and angle < angle_max:
                     if  angle > angle_old :
@@ -72,8 +71,8 @@ while True:
                         angle_old = angle
                         index_lidar+=1
                     else:
-                        print(f"Length lidar distance : {len(list_lidar_point)} Sum distance {sum(list_lidar_point)} \n")
-                        print(list_lidar_point[:index_lidar],'\n')
+                        # print(f"Length lidar distance : {len(list_lidar_point)} Sum distance {sum(list_lidar_point)} \n")
+                        # print(list_lidar_point[:index_lidar],'\n')
 
                         data['Len_points'] = max(len(list_lidar_point),data['Len_points'])
                         data['Sum_distance'] = max(sum(list_lidar_point),data['Sum_distance'])
@@ -84,17 +83,31 @@ while True:
                         index_lidar = 0
                         list_lidar_point[index_lidar] = distance
                         angle_old = angle
+                # if angle > angle_old:
+                #     angle_old = angle
+                #     # print('.')
+                # if angle < angle_old:
+                #     print("end angle ",angle_old)
+                #     end_time = time.time()
+                #     elapsed_time = end_time - start_time
+                #     print(f"thread lidar {elapsed_time:.2f} seconds")     
+                #     start_time = time.time()   
+                #     angle_old = angle
+                #     print("start angle ",angle)
 
             tmpString = ""
             loopFlag = False
 
         else:
             tmpString += b.hex() + " "
-
         flag2c = False
+       
 
     i += 1
     if i ==5000:
+        # end_time = time.time()
+        # elapsed_time = end_time - start_time
+        # print(f"thread led {elapsed_time:.2f} seconds")
         break
 file_path = "lidar_infor.json"
 with open(file_path,'w') as json_file:
