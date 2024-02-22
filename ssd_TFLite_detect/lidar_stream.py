@@ -105,3 +105,16 @@ class lidarStream:
     
     def stop(self):
         self.stopped = True
+
+    
+def check_array(old_arr,new_arr,threshold_lidar):
+    dem = 0
+    for i in range(min(len(old_arr),len(new_arr))):
+
+        if abs(old_arr[i]-new_arr[i]) >  5:
+            dem+=1
+            if dem >3: return True
+        else:
+            dem=0
+
+    return False

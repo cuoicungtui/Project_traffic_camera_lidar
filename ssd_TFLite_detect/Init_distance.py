@@ -13,7 +13,6 @@ ser = serial.Serial(port='/dev/ttyS0',
                     stopbits=1)
 
 tmpString = ""
-total_distance = 2000
 
 i = 0
 angle_old = 0
@@ -33,6 +32,7 @@ data = {
 index_lidar = 0
 start_time = time.time()
 while True:
+# while time.time() - start_time < 1:
     loopFlag = True
     flag2c = False
 
@@ -101,11 +101,12 @@ while True:
        
 
     i += 1
-    if i ==5000:
+    if i == 5000:
         # end_time = time.time()
         # elapsed_time = end_time - start_time
         # print(f"thread led {elapsed_time:.2f} seconds")
         break
+# print("i = ",i)
 file_path = "lidar_infor.json"
 with open(file_path,'w') as json_file:
     json.dump(data,json_file,indent=2)

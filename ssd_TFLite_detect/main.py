@@ -15,7 +15,7 @@ import RPi.GPIO as GPIO
 from video_stream import VideoStream
 import serial
 from CalcLidarData import CalcLidarData
-from lidar_stream import lidarStream
+from lidar_stream import lidarStream , check_array
 
 OUTPUT_LEDS = [0,0,0]  
 
@@ -170,6 +170,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
         frame = videostream.read()
 
         frame_old, frame = polygon_cal.cut_frame_polygon(frame)
+        # cv2.imshow('Object detector', frame)
 
         # get updated location of objects in subsequent frames
         success, boxes_update = multiTracker.update(frame)
@@ -197,20 +198,8 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
         # end_time = time.time()
         # elapsed_time = end_time - start_time
         # print(f"thread camera {elapsed_time:.2f} seconds. ")
-        # cv2.imshow('Object detector 1', frame)
 
 
-def check_array(old_arr,new_arr,threshold_lidar):
-    dem = 0
-    for i in range(min(len(old_arr),len(new_arr))):
-
-        if abs(old_arr[i]-new_arr[i]) >  5:
-            dem+=1
-            if dem >3: return True
-        else:
-            dem=0
-
-    return False
    
 def Control_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
     global OUTPUT_LEDS
@@ -354,7 +343,7 @@ def main_process():
                 'freeze' : camera_result['freeze']
             }
 
-            if not camera_result['Left'] or not camera_result['Right']:
+            if not camera_result['Left'] and not camera_result['Right']:
                 lidar_self = lidarstream.start()
                 while not lidar_self.stopped:
                     time.sleep(0.01)
