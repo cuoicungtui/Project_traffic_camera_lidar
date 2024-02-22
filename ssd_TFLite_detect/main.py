@@ -3,7 +3,6 @@ import numpy as np
 import time
 from threading import Thread
 import multiprocessing
-import queue
 # Import packages
 import os
 import argparse
@@ -12,20 +11,15 @@ import importlib.util
 from ssdDetect import polygon_calculate
 import threading
 import json
-
+import RPi.GPIO as GPIO
 from video_stream import VideoStream
-
-# Import lib Lidar
 import serial
 from CalcLidarData import CalcLidarData
 from lidar_stream import lidarStream
 
-import RPi.GPIO as GPIO
-import time
-
 OUTPUT_LEDS = [0,0,0]  
 
-global result_queue_cam
+result_queue_cam = list()
 CHECK_CAM = False
 
 # Create a tracker based on tracker name
@@ -58,14 +52,15 @@ def createTrackerByName(trackerType):
 
 
 def detect_camera(videostream,imW,imH,camera_thread_event):
-    global result_queue_cam
-    global CHECK_CAM
     # ... (your existing code for camera detection)
     # Assuming PointsInfor is the result from camera detection
+    global result_queue_cam
+    global CHECK_CAM
+
     MODEL_NAME = './All_Model_detect/Sample_TFLite_model'
     GRAPH_NAME = "detect.tflite"
     LABELMAP_NAME = "labelmap.txt"
-    min_conf_threshold = float(0.5)
+    min_conf_threshold = float(0.55)
     JSON_PATH = 'polygon.json'
 
     pkg = importlib.util.find_spec('tflite_runtime')
@@ -78,7 +73,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
     CWD_PATH = os.getcwd()
     # path json polygon
     JSON_PATH = os.path.join(CWD_PATH,JSON_PATH)
-    print("JSON path : ",JSON_PATH)
+    # print("JSON path : ",JSON_PATH)
 
     PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,GRAPH_NAME)
     PATH_TO_LABELS = os.path.join(CWD_PATH,MODEL_NAME,LABELMAP_NAME)
@@ -202,15 +197,22 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
         # end_time = time.time()
         # elapsed_time = end_time - start_time
         # print(f"thread camera {elapsed_time:.2f} seconds. ")
-        # print(count)
-        # frame = polygon_cal.draw_polygon(frame)
-        # frame = cv2.circle( frame, (polygon_cal.points['right_check'][0], polygon_cal.points['right_check'][1]), 5, (0,255,255), -1)
-        # frame = cv2.circle( frame, (polygon_cal.points['left_check'][0], polygon_cal.points['left_check'][1]), 5, (255,0,255), -1)
-        # # frame = cv2.resize(frame, (1080, 720))
-        cv2.imshow('Object detector 1', frame)
+        # cv2.imshow('Object detector 1', frame)
 
 
-def COntrol_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
+def check_array(old_arr,new_arr,threshold_lidar):
+    dem = 0
+    for i in range(min(len(old_arr),len(new_arr))):
+
+        if abs(old_arr[i]-new_arr[i]) >  5:
+            dem+=1
+            if dem >3: return True
+        else:
+            dem=0
+
+    return False
+   
+def Control_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
     global OUTPUT_LEDS
 
     GPIO.setmode(GPIO.BCM)
@@ -272,21 +274,10 @@ def COntrol_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
 
  # [RIGHT,LEFT,Warning]  on:1 off:0: blick : 2
 
-def check_array(old_arr,new_arr,threshold_lidar):
-    dem = 0
-    for i in range(min(len(old_arr),len(new_arr))):
-
-        if abs(old_arr[i]-new_arr[i]) >  5:
-            dem+=1
-            if dem >3: return True
-        else:
-            dem=0
-
-    return False
-    
-
 def main_process():
     global OUTPUT_LEDS
+    global CHECK_CAM
+    global result_queue_cam
 
     INDEX_CHECK = 0
     NUM_Check_Lidar = 5
@@ -296,8 +287,6 @@ def main_process():
 
     OFF_THRESHOLD = 1
     ON_THRESHOLD = 3
-    # LIDAR_THRESHOLD = 02.5
-    # WARNING_THRESHOLD = 0.6
 
     CHECK_FRAME_LIDAR = np.zeros(NUM_Check_Lidar)
     CHECK_FRAME_LEFT = np.zeros(NUM_Check_Lidar)
@@ -307,9 +296,6 @@ def main_process():
     CHECK_FRAME_FORBIDDEN_LEFT = np.zeros(NUM_CHECK_WARNING)
     CHECK_FRAME_FORBIDDEN_RIGHT = np.zeros(NUM_CHECK_WARNING)
     CHECK_FRAME_FREEZE = np.zeros(NUM_CHECK_WARNING)
-
-    global CHECK_CAM
-    global result_queue_cam
 
     # Connect Cam
     VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
@@ -344,7 +330,7 @@ def main_process():
                                  total_points = total_points)
 
 
-    control_leds_thread = Thread(target=COntrol_leds)
+    control_leds_thread = Thread(target=Control_leds)
     control_leds_thread.start()
     camera_thread.start()
 
@@ -359,6 +345,7 @@ def main_process():
             
             # read out camera and lidar => create result ALL
             camera_result = result_queue_cam
+            # print("Camera_result",camera_result)
             All_result = {
                 'Left':camera_result['Left'],
                 'Right':camera_result['Right'],
@@ -380,7 +367,7 @@ def main_process():
             else:
                 All_result['Lidar_infor'] = True
       
-            # print(All_result)
+            print(All_result)
             # Quantity statistics lidar infor and camera infor
             if All_result['Lidar_infor']:
                 CHECK_FRAME_LIDAR[INDEX_CHECK] = 1 
@@ -418,7 +405,6 @@ def main_process():
                 INDEX_WARNING = 0
                 
 
-            # print("All resuklt : ",All_result')
             #  export OUT_LED
             TEMP_LED = [0,0,0]
 
