@@ -166,7 +166,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
     # Create MultiTracker object
     multiTracker = cv2.MultiTracker_create()
     count = 0
-    num_frame_to_detect = 14
+    num_frame_to_detect = 12
  
     while(True):
         # start_time = time.time()
@@ -380,7 +380,7 @@ def main_process():
             else:
                 All_result['Lidar_infor'] = True
       
-            print(All_result)
+            # print(All_result)
             # Quantity statistics lidar infor and camera infor
             if All_result['Lidar_infor']:
                 CHECK_FRAME_LIDAR[INDEX_CHECK] = 1 
