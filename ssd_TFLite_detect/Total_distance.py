@@ -36,9 +36,6 @@ while True:
     loopFlag = True
     flag2c = False
 
-
-    
-
     while loopFlag:
       
         b = ser.read()
@@ -71,8 +68,8 @@ while True:
                         angle_old = angle
                         index_lidar+=1
                     else:
-                        # print(f"Length lidar distance : {len(list_lidar_point)} Sum distance {sum(list_lidar_point)} \n")
-                        # print(list_lidar_point[:index_lidar],'\n')
+                        print(f"Length lidar distance : {len(list_lidar_point)} Sum distance {sum(list_lidar_point)} \n")
+                        print(list_lidar_point[:index_lidar],'\n')
 
                         data['Len_points'] = max(len(list_lidar_point),data['Len_points'])
                         data['Sum_distance'] = max(sum(list_lidar_point),data['Sum_distance'])
@@ -85,7 +82,6 @@ while True:
                         angle_old = angle
                 # if angle > angle_old:
                 #     angle_old = angle
-                #     # print('.')
                 # if angle < angle_old:
                 #     print("end angle ",angle_old)
                 #     end_time = time.time()
@@ -94,6 +90,7 @@ while True:
                 #     start_time = time.time()   
                 #     angle_old = angle
                 #     print("start angle ",angle)
+                #     print("i = ",i)
 
             tmpString = ""
             loopFlag = False

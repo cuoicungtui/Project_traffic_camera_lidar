@@ -166,10 +166,9 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
     # Create MultiTracker object
     multiTracker = cv2.MultiTracker_create()
     count = 0
-    num_frame_to_detect = 12
+    num_frame_to_detect = 14
  
     while(True):
-        time.sleep(0.01)
         # start_time = time.time()
 
         # Acquire frame and resize to expected shape [1xHxWx3]
@@ -184,9 +183,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
             controids = polygon_cal.centroid(boxes_update)
             PointsInfor = polygon_cal.check_result(controids,centroids_old)
             # print(f"Information point:{PointsInfor}  \n")
-            # result_queue.put(PointsInfor)
             result_queue_cam = PointsInfor
-            # time.sleep(0.3)
             CHECK_CAM = True
             count = 0
             camera_thread_event.set()
@@ -210,7 +207,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
         # frame = cv2.circle( frame, (polygon_cal.points['right_check'][0], polygon_cal.points['right_check'][1]), 5, (0,255,255), -1)
         # frame = cv2.circle( frame, (polygon_cal.points['left_check'][0], polygon_cal.points['left_check'][1]), 5, (255,0,255), -1)
         # # frame = cv2.resize(frame, (1080, 720))
-        # cv2.imshow('Object detector 1', frame)
+        cv2.imshow('Object detector 1', frame)
 
 
 def COntrol_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
@@ -279,7 +276,7 @@ def check_array(old_arr,new_arr,threshold_lidar):
     dem = 0
     for i in range(min(len(old_arr),len(new_arr))):
 
-        if abs(old_arr[i]-new_arr[i]) >  10.2:
+        if abs(old_arr[i]-new_arr[i]) >  5:
             dem+=1
             if dem >3: return True
         else:
@@ -297,12 +294,12 @@ def main_process():
     NUM_CHECK_WARNING = 5
     INDEX_WARNING= 0
 
-    OFF_THRESHOLD = 0.2
-    ON_THRESHOLD = 0.6
-    LIDAR_THRESHOLD = 02.5
-    WARNING_THRESHOLD = 0.6
+    OFF_THRESHOLD = 1
+    ON_THRESHOLD = 3
+    # LIDAR_THRESHOLD = 02.5
+    # WARNING_THRESHOLD = 0.6
 
-    CHECK_FRAME_LIDAR = np.zeros(8)
+    CHECK_FRAME_LIDAR = np.zeros(NUM_Check_Lidar)
     CHECK_FRAME_LEFT = np.zeros(NUM_Check_Lidar)
     CHECK_FRAME_RIGHT = np.zeros(NUM_Check_Lidar)
 
@@ -333,7 +330,6 @@ def main_process():
     total_points = Lidar_infor['Len_points']
     Lidar_ponts = Lidar_infor['points']
 
-    Mean_err = 5
 
     camera_thread_event = threading.Event()
     # Create and start the camera detection thread
@@ -347,7 +343,7 @@ def main_process():
                                  angle_max = angle_max,
                                  total_points = total_points)
 
-    lidarstream.start()
+
     control_leds_thread = Thread(target=COntrol_leds)
     control_leds_thread.start()
     camera_thread.start()
@@ -370,15 +366,21 @@ def main_process():
                 'Forbidden_left'  : camera_result['Forbidden_left'],
                 'freeze' : camera_result['freeze']
             }
-            time.sleep(0.03)
-            lidar_result = lidarstream.read()
-            # print(lidar_result)
-            if check_array(Lidar_ponts,lidar_result,3):
-                All_result['Lidar_infor'] = True
-            else:
-                All_result['Lidar_infor'] = False
-      
 
+            if not camera_result['Left'] or not camera_result['Right']:
+                lidar_self = lidarstream.start()
+                while not lidar_self.stopped:
+                    time.sleep(0.01)
+                lidar_result = lidar_self.read()
+                    
+                if check_array(Lidar_ponts,lidar_result,3):
+                    All_result['Lidar_infor'] = True
+                else:
+                    All_result['Lidar_infor'] = False
+            else:
+                All_result['Lidar_infor'] = True
+      
+            print(All_result)
             # Quantity statistics lidar infor and camera infor
             if All_result['Lidar_infor']:
                 CHECK_FRAME_LIDAR[INDEX_CHECK] = 1 
@@ -420,31 +422,31 @@ def main_process():
             #  export OUT_LED
             TEMP_LED = [0,0,0]
 
-            if sum(CHECK_FRAME_FORBIDDEN_RIGHT)/NUM_CHECK_WARNING >ON_THRESHOLD :
+            if sum(CHECK_FRAME_FORBIDDEN_RIGHT)>= ON_THRESHOLD :
                 TEMP_LED[0] = 2
             else:
-              if sum(CHECK_FRAME_RIGHT)/NUM_Check_Lidar >ON_THRESHOLD :
+              if sum(CHECK_FRAME_RIGHT)>= ON_THRESHOLD :
                 TEMP_LED[0] = 1
-            if sum(CHECK_FRAME_RIGHT)  == 0 :
+            if sum(CHECK_FRAME_RIGHT)  <= OFF_THRESHOLD :
                 TEMP_LED[0] = 0 
 
-            if sum(CHECK_FRAME_FORBIDDEN_LEFT)/NUM_CHECK_WARNING >ON_THRESHOLD  :
+            if sum(CHECK_FRAME_FORBIDDEN_LEFT) >= ON_THRESHOLD  :
                 TEMP_LED[1] = 2
             else:
-                if sum(CHECK_FRAME_LEFT)/NUM_Check_Lidar >ON_THRESHOLD  :
+                if sum(CHECK_FRAME_LEFT)  >= ON_THRESHOLD  :
                     TEMP_LED[1] = 1
-            if sum(CHECK_FRAME_LEFT) ==0 :
+            if sum(CHECK_FRAME_LEFT) <= OFF_THRESHOLD :
                 TEMP_LED[1] = 0 
 
 
-            if sum(CHECK_FRAME_FREEZE)/NUM_CHECK_WARNING >0  :
-                TEMP_LED[2] = 0
-            else:
-                if  sum(CHECK_FRAME_LIDAR) <2:
-                    TEMP_LED[2] = 0
+            if sum(CHECK_FRAME_FREEZE)  >= ON_THRESHOLD :
+                TEMP_LED[2] = 2
+            else:             
+                if  sum(CHECK_FRAME_LIDAR) >= ON_THRESHOLD and OUTPUT_LEDS[0] ==0 and OUTPUT_LEDS[1] == 0:
+                    TEMP_LED[2] = 1
                 else:
-                    if  sum(CHECK_FRAME_LIDAR) >=3 and OUTPUT_LEDS[0] ==0 and OUTPUT_LEDS[1] == 0:
-                        TEMP_LED[2] = 1
+                    if  sum(CHECK_FRAME_LIDAR) <= OFF_THRESHOLD:
+                        TEMP_LED[2] = 0
                 
             OUTPUT_LEDS = TEMP_LED
             print(f"Infor : {TEMP_LED} {index_count}" ) 

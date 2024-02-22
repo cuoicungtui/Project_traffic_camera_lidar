@@ -2,6 +2,7 @@ from threading import Thread
 import multiprocessing
 import serial
 from CalcLidarData import CalcLidarData
+import time
 
 class lidarStream:
     """ lidar object that read and update data for angle and distance"""
@@ -17,14 +18,20 @@ class lidarStream:
         self.total_points = total_points
         self.stopped = False
         self.result_lidar = list()
+        self.time = 0
+        self.ser.close()
 
     def start(self):
+        self.stopped = False
         Thread(target= self.update , args =()).start()
         return self
 
-
     def update(self):
 
+        self.ser.open()
+        start_time = time.time()
+        # self.ser.f+self.ser.read()self.ser.read()
+        i=0
         tmpString = ""
         angle_old = 0
         self.result_lidar = list(range(self.total_points))
@@ -82,8 +89,18 @@ class lidarStream:
                     tmpString += b.hex() + " "
 
                 flag2c = False
-    
+            i+=1
+            if i%80 ==0:
+                end_time = time.time()
+                self.time = end_time - start_time
+                start_time = time.time()
+                print(f"thread lidar {self.time:.2f} seconds")  
+                self.ser.close()
+                self.stop()
+
+
     def read(self):
+        # print("Bytes waiting in inut buffer",self.ser.in_waiting)
         return self.result_lidar[:self.total_points]
     
     def stop(self):
