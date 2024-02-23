@@ -101,7 +101,7 @@ while True:
        
 
     i += 1
-    if i == 5000:
+    if i == 50000:
         # end_time = time.time()
         # elapsed_time = end_time - start_time
         # print(f"thread led {elapsed_time:.2f} seconds")

@@ -24,6 +24,7 @@ class lidarStream:
     def start(self):
         self.stopped = False
         Thread(target= self.update , args =()).start()
+        # self.stopped = True
         return self
 
     def update(self):
