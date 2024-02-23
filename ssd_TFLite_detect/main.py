@@ -161,7 +161,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
     # Create MultiTracker object
     multiTracker = cv2.MultiTracker_create()
     count = 0
-    num_frame_to_detect = 12
+    num_frame_to_detect = 8
  
     while(True):
         # start_time = time.time()
@@ -186,6 +186,11 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
 
         if count == 0:
             boxes, classes,scores,centroids_old = detect_ssd(frame)
+            
+            if len(boxes) ==0:
+                count = num_frame_to_detect-1
+                # continue
+
             multiTracker = cv2.MultiTracker_create()
             # Initialize MultiTracker
             for bbox in boxes:

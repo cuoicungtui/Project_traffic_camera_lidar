@@ -141,23 +141,25 @@ class polygon_calculate():
             "Forbidden_right":False,
             "freeze" :False
         }
-        for i in range(len(points)):
-            
-            point_old = points_old[i]
-            point_new = points[i]
-            if self.isInside(polygon['left'], point_new):
-                point_Infor['Left'] = True
-                if self.distance(point_new,point_old,self.points['left_check']) > 0:
-                    point_Infor['Forbidden_left'] = True
-                elif self.distance(point_new,point_old,self.points['left_check']) ==0: # dang ngu
-                    point_Infor['freeze'] = True
-            elif self.isInside(polygon['right'], point_new):
-                point_Infor['Right'] = True
-                if self.distance(point_new,point_old,self.points['right_check'])>0:
-                    point_Infor['Forbidden_right'] = True
-                elif self.distance(point_new,point_old,self.points['right_check'])==0 : # kinda stupid
-                    point_Infor['freeze'] = True
-            # print('KC : ',,"\n")
+        try:
+            for i in range(len(points)):
+                
+                point_old = points_old[i]
+                point_new = points[i]
+                if self.isInside(polygon['left'], point_new):
+                    point_Infor['Left'] = True
+                    if self.distance(point_new,point_old,self.points['left_check']) > 0:
+                        point_Infor['Forbidden_left'] = True
+                    elif self.distance(point_new,point_old,self.points['left_check']) ==0: # dang ngu
+                        point_Infor['freeze'] = True
+                elif self.isInside(polygon['right'], point_new):
+                    point_Infor['Right'] = True
+                    if self.distance(point_new,point_old,self.points['right_check'])>0:
+                        point_Infor['Forbidden_right'] = True
+                    elif self.distance(point_new,point_old,self.points['right_check'])==0 : # kinda stupid
+                        point_Infor['freeze'] = True
+        except:
+            print("len point : ", len(points_old),len(points))
         return point_Infor
 
 

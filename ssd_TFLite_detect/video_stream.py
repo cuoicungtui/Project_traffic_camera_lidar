@@ -31,7 +31,12 @@ class VideoStream:
                 return
 
             # Otherwise, grab the next frame from the stream
-            (self.grabbed, self.frame) = self.stream.read()
+
+            (self.grabbed, frame) = self.stream.read()
+            if self.grabbed:
+                self.frame = frame
+            time.sleep(0.01)
+
 
     def read(self):
 	# Return the most recent frame
