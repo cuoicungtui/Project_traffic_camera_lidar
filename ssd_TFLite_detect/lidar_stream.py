@@ -7,6 +7,7 @@ import time
 class lidarStream:
     """ lidar object that read and update data for angle and distance"""
     def __init__(self,port_serial='/dev/ttyS0',baudrate=230400, bytesize=8 , stopbits=1,angle_min = 0, angle_max = 360,total_points = 100):
+        # Config the serial port and start it
         self.ser = serial.Serial(port= port_serial,
                     baudrate=baudrate,
                     timeout=5.0,
@@ -16,13 +17,17 @@ class lidarStream:
         self.angle_min = angle_min
         self.angle_max = angle_max
         self.total_points = total_points
+        # Variable to control when the lidar is stopped
         self.stopped = False
+        # Get the list of point from lidar
         self.result_lidar = list()
         self.time = 0
+        # Variable to control when the serial port is stopped
         self.ser.close()
 
     def start(self):
-        self.stopped = False
+        # Get start the lidar thread
+        self.stopped = False # Because the lidar thread always opens. If u wanna update the newest list of point, u must be stop the thread of lidar 
         Thread(target= self.update , args =()).start()
         # self.stopped = True
         return self
@@ -91,6 +96,11 @@ class lidarStream:
 
                 flag2c = False
             i+=1
+            """
+            Each circle of lidar return about 40-41 points.
+            Each turn is different due to different ray deviations, so the results are different. 
+            So lidar needs to be filmed twice to be able to fully take the values of the points in the angle_min to the angle_max.
+            """
             if i%80 ==0:
                 end_time = time.time()
                 self.time = end_time - start_time
@@ -101,10 +111,12 @@ class lidarStream:
 
 
     def read(self):
+        # Read the list of points from LiDAR
         # print("Bytes waiting in inut buffer",self.ser.in_waiting)
         return self.result_lidar[:self.total_points]
     
     def stop(self):
+        # Stop the thread of lidar
         self.stopped = True
 
     
