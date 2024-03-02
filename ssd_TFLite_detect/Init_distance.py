@@ -40,6 +40,7 @@ while True:
       
         b = ser.read()
         tmpInt = int.from_bytes(b, 'big')
+        # print("read")
 
         if tmpInt == 0x54:
             tmpString += b.hex() + " "
@@ -56,8 +57,8 @@ while True:
                 continue
 
             lidarData = CalcLidarData(tmpString[0:-5])
-            # print(f"lidar information: Distance{lidarData.Distance_i} angle : {lidarData.Angle_i} \n")
-            # print(f"lidar information: Sum Distance{sum(lidarData.Distance_i)} len_distance {len(lidarData.Distance_i)} \n")
+            print(f"lidar information: Distance{lidarData.Distance_i} angle : {lidarData.Angle_i} \n")
+            print(f"lidar information: Sum Distance{sum(lidarData.Distance_i)} len_distance {len(lidarData.Distance_i)} \n")
             # print(f"lidar information: start {lidarData.Angle_i[0]} end {lidarData.Angle_i[11]} len_distance {len(lidarData.Distance_i)} \n")
             # add point lidar
             

@@ -100,7 +100,8 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
 
     input_mean = 127.5
     input_std = 127.5
-    limit_area = 10000
+    # raito box car accept with area 
+    limit_raito = 5
 
     # Check output layer name to determine if this model was created with TF2 or TF1,
     # because outputs are ordered differently for TF2 and TF1 models
@@ -146,12 +147,17 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
                     xmin = int(max(1,(boxes[i][1] * imW)))
                     ymax = int(min(imH,(boxes[i][2] * imH)))
                     xmax = int(min(imW,(boxes[i][3] * imW)))
-                    
+                    bbox = (xmin,ymin,xmax,ymax)
+
+                    if polygon_cal.cal_polygon_area_ratio(bbox) > limit_raito:
+                        continue
+
                     # if(polygon_cal.area_box((xmin,ymin,xmax,ymax),limit_area)):
                     centroid_new.append([int((xmin+xmax)//2),int((ymin+ymax)//2)])
                     boxes_new.append((xmin,ymin,xmax,ymax))
                     classes_new.append(classes[i])
                     scores_new.append(scores[i])
+
         # print("SHAPE CALASS: ",classes_new,"|||", scores_new)
         return boxes_new,classes_new,scores_new,centroid_new
 
@@ -172,7 +178,12 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
         frame_old, frame = polygon_cal.cut_frame_polygon(frame)
         # cv2.imshow('Object detector', frame)
 
+        # cv2.imshow('Object detector', frame)
         # get updated location of objects in subsequent frames
+        if count > 0 and count <8 and count%6 ==0:
+            count+=1
+            continue
+
         success, boxes_update = multiTracker.update(frame)
 
         if count == num_frame_to_detect:
@@ -274,13 +285,13 @@ def main_process():
     global result_queue_cam
 
     INDEX_CHECK = 0
-    NUM_Check_Lidar = 5
+    NUM_Check_Lidar = 3
 
-    NUM_CHECK_WARNING = 5
+    NUM_CHECK_WARNING = 3
     INDEX_WARNING= 0
 
     OFF_THRESHOLD = 1
-    ON_THRESHOLD = 3
+    ON_THRESHOLD = 2
 
     CHECK_FRAME_LIDAR = np.zeros(NUM_Check_Lidar)
     CHECK_FRAME_LEFT = np.zeros(NUM_Check_Lidar)
@@ -292,10 +303,10 @@ def main_process():
     CHECK_FRAME_FREEZE = np.zeros(NUM_CHECK_WARNING)
 
     # Connect Cam
-    VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
-    # VIDEO_PATH = '/home/pi/Projects/Roadtrafficvideo2.mp4'
+    #VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
+    VIDEO_PATH = '/home/pi/Desktop/video_test/traffic.mp4'
 
-    imW,imH = 1280,720
+    imW,imH = 1920,1080
     videostream = VideoStream(resolution=(imW,imH),framerate=25,STREAM_URL= VIDEO_PATH).start()
     #videostream = cv2.VideoCapture(VIDEO_PATH)
     time.sleep(1)
@@ -430,6 +441,8 @@ def main_process():
                 
             OUTPUT_LEDS = TEMP_LED
             print(f"Infor : {TEMP_LED} {index_count}" ) 
+            if (sum(TEMP_LED)>0):
+                videostream.savevideo()
 
             index_count+=1
             camera_thread_event.clear()

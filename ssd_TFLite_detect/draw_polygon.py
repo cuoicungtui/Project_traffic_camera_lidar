@@ -10,20 +10,21 @@ import json
 import time
 from threading import Thread
 from video_stream import VideoStream
+from shapely.geometry import Polygon
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--Width_video',help='Width_frame video' , default= 1280) 
-parser.add_argument('--Height_video',help='Width_frame video' , default= 720) 
+parser.add_argument('--Width_video',help='Width_frame video' , default= 1920) 
+parser.add_argument('--Height_video',help='Width_frame video' , default= 1080) 
 parser.add_argument('--video', help='Name of the video file',default='4K_road_traffic.mp4')
 parser.add_argument('--path_save_json', help='Path save polygon jon',default="polygon.json")
 
 args = parser.parse_args()
 
 # Open video file
-VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
-
+#VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
+VIDEO_PATH = '/home/pi/Desktop/video_test/traffic.mp4'
 
 VIDEO_NAME = args.video
 WIDTH_VIDEO = int(args.Width_video)
@@ -115,6 +116,17 @@ while(True):
 cv2.destroyAllWindows()
 videostream.stop()
 
+def cal_polygon_area_ratio(polygon1,polygon2):
+    poly1 = Polygon(polygon1)
+    poly2 = Polygon(polygon2)
+
+    area1 = poly1.area
+    area2 = poly2.area
+    ratio = area1/area2
+
+    return ratio
+
+print("raito : ",cal_polygon_area_ratio(POINTS['left'],POINTS['area']))
 print('POINT LEFT : ',POINTS['left'])
 print('\n')
 print('POINT RIGHT : ',POINTS['right'])

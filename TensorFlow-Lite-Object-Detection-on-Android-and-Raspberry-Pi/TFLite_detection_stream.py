@@ -27,12 +27,13 @@ import importlib.util
 # Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
 class VideoStream:
     """Camera object that controls video streaming"""
-    def __init__(self,resolution=(640,480),framerate=30):
+    def __init__(self,resolution=(2560,1440),framerate=30):
         # Initialize the PiCamera and the camera image stream
         self.stream = cv2.VideoCapture(STREAM_URL)
         self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.stream.set(3,resolution[0])
         self.stream.set(4,resolution[1])
+        self.resolution = resolution
             
         # Read first frame from the stream
         (self.grabbed, self.frame) = self.stream.read()
@@ -56,9 +57,10 @@ class VideoStream:
 
             # Otherwise, grab the next frame from the stream
             (self.grabbed, self.frame) = self.stream.read()
-
+            time.sleep(0.05)
     def read(self):
 	# Return the most recent frame
+        self.frame = cv2.resize(self.frame,self.resolution)
         return self.frame
 
     def stop(self):
@@ -78,14 +80,15 @@ parser.add_argument('--labels', help='Name of the labelmap file, if different th
 parser.add_argument('--threshold', help='Minimum confidence threshold for displaying detected objects',
                     default=0.5)
 parser.add_argument('--resolution', help='Desired webcam resolution in WxH. If the webcam does not support the resolution entered, errors may occur.',
-                    default='1280x720')
+                    default='1920x1080')
 parser.add_argument('--edgetpu', help='Use Coral Edge TPU Accelerator to speed up detection',
                     action='store_true')
 
 args = parser.parse_args()
 
 MODEL_NAME = args.modeldir
-STREAM_URL = args.streamurl
+# STREAM_URL = args.streamurl
+STREAM_URL = '/home/pi/Desktop/video_test/traffic.mp4'
 GRAPH_NAME = args.graph
 LABELMAP_NAME = args.labels
 min_conf_threshold = float(args.threshold)
@@ -210,7 +213,7 @@ while True:
             xmax = int(min(imW,(boxes[i][3] * imW)))
             
             cv2.rectangle(frame, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
-
+            print("true")
             # Draw label
             object_name = labels[int(classes[i])] # Look up object name from "labels" array using class index
             label = '%s: %d%%' % (object_name, int(scores[i]*100)) # Example: 'person: 72%'
@@ -223,7 +226,7 @@ while True:
     cv2.putText(frame,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
     # All the results have been drawn on the frame, so it's time to display it.
-    # cv2.imshow('Object detector', frame)+
+    cv2.imshow('Object detector', frame)
 
     # Calculate framerate
     t2 = cv2.getTickCount()

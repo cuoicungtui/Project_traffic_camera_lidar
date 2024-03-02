@@ -29,7 +29,7 @@ class polygon_calculate():
             height = data['size_height']
             widght_scale = width_new/width
             height_scale = height_new/height
-            
+            print("Scale : ", widght_scale , height_scale)
             self.points['area'].clear()
             self.points['left'].clear()
             self.points['right'].clear()
@@ -146,17 +146,18 @@ class polygon_calculate():
                 
                 point_old = points_old[i]
                 point_new = points[i]
+                
                 if self.isInside(polygon['left'], point_new):
                     point_Infor['Left'] = True
-                    if self.distance(point_new,point_old,self.points['left_check']) > 0:
+                    if self.distance(point_new,point_old,self.points['left_check']) < -3:
                         point_Infor['Forbidden_left'] = True
-                    elif self.distance(point_new,point_old,self.points['left_check']) ==0: # dang ngu
+                    elif abs(self.distance(point_new,point_old,self.points['left_check'])) <3: 
                         point_Infor['freeze'] = True
                 elif self.isInside(polygon['right'], point_new):
                     point_Infor['Right'] = True
-                    if self.distance(point_new,point_old,self.points['right_check'])>0:
+                    if self.distance(point_new,point_old,self.points['right_check'])<-3:
                         point_Infor['Forbidden_right'] = True
-                    elif self.distance(point_new,point_old,self.points['right_check'])==0 : # kinda stupid
+                    elif abs(self.distance(point_new,point_old,self.points['right_check'])) < 3 : 
                         point_Infor['freeze'] = True
         except:
             print("len point : ", len(points_old),len(points))
@@ -178,6 +179,7 @@ class polygon_calculate():
         point_new =  Point(point_new) 
         point_old =  Point(point_old)
         point_check= Point(point_check)
+        #print("distance ",(point_check.distance(point_old) - point_check.distance(point_new)),"old : ",point_check.distance(point_old),"new : ", point_check.distance(point_new))
         return (point_check.distance(point_old) - point_check.distance(point_new))
     
     def cut_frame_polygon(self, frame):
@@ -195,3 +197,19 @@ class polygon_calculate():
         result = cv2.bitwise_and(frame, mask)
 
         return frame, result
+    
+    def cal_polygon_area_ratio(self , bbox):
+        array = self.points['area']
+        polygon2 = np.reshape(array,(array.shape[0],2))
+        # print("polygon2",polygon2.shape)
+
+        # polygon1 = [(bbox[0],bbox[1]),(bbox[2],bbox[1]),(bbox[2],bbox[3]),(bbox[0],bbox[3])]
+        poly1 = box(bbox[0],bbox[1],bbox[2],bbox[3])
+        # poly1 = Polygon(polygon1)
+        poly2 = Polygon(polygon2)
+        area1 = poly1.area
+        area2 = poly2.area       
+        ratio = area1/area2 * 100
+        # print("area : ",area1,area2,ratio )
+
+        return ratio
