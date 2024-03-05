@@ -17,8 +17,8 @@ tmpString = ""
 i = 0
 angle_old = 0
 list_lidar_point = np.zeros(1000)
-angle_min = 260.0
-angle_max = 280.0
+angle_min = 0.0
+angle_max = 20.0
 
 data = {
     "angle_min" : angle_min,
@@ -102,7 +102,7 @@ while True:
        
 
     i += 1
-    if i == 50000:
+    if i == 5000:
         # end_time = time.time()
         # elapsed_time = end_time - start_time
         # print(f"thread led {elapsed_time:.2f} seconds")

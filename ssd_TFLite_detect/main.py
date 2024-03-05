@@ -101,7 +101,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
     input_mean = 127.5
     input_std = 127.5
     # raito box car accept with area 
-    limit_raito = 5
+    limit_raito = 70
 
     # Check output layer name to determine if this model was created with TF2 or TF1,
     # because outputs are ordered differently for TF2 and TF1 models
@@ -167,7 +167,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
     # Create MultiTracker object
     multiTracker = cv2.MultiTracker_create()
     count = 0
-    num_frame_to_detect = 8
+    num_frame_to_detect = 5
  
     while(True):
         # start_time = time.time()
@@ -180,7 +180,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
 
         # cv2.imshow('Object detector', frame)
         # get updated location of objects in subsequent frames
-        if count > 0 and count <8 and count%6 ==0:
+        if count > 0 and count <num_frame_to_detect and count%(num_frame_to_detect//2) ==0:
             count+=1
             continue
 
@@ -198,8 +198,10 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
         if count == 0:
             boxes, classes,scores,centroids_old = detect_ssd(frame)
             
+            # print("Num detect: ",len(boxes))
             if len(boxes) ==0:
                 count = num_frame_to_detect-1
+
                 # continue
 
             multiTracker = cv2.MultiTracker_create()
@@ -217,7 +219,7 @@ def detect_camera(videostream,imW,imH,camera_thread_event):
 
 
    
-def Control_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
+def Control_leds(num_led_right=6, num_led_left=13, num_led_warning=19):
     global OUTPUT_LEDS
 
     GPIO.setmode(GPIO.BCM)
@@ -235,7 +237,7 @@ def Control_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
     # # print("Run")
 
     GPIO.output(num_led_right,GPIO.LOW)
-    GPIO.output(num_led_left,GPIO.HIGH)
+    GPIO.output(num_led_left,GPIO.LOW)
     GPIO.output(num_led_warning,GPIO.LOW)
 
 
@@ -253,9 +255,9 @@ def Control_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
             else: 
                 GPIO.output(num_led_right,GPIO.LOW)
             if OUTPUT_LEDS[1] > 0:
-                GPIO.output(num_led_left,GPIO.LOW)
-            else: 
                 GPIO.output(num_led_left,GPIO.HIGH)
+            else: 
+                GPIO.output(num_led_left,GPIO.LOW)
             if OUTPUT_LEDS[2] > 0:
                 GPIO.output(num_led_warning,GPIO.HIGH)
             else: 
@@ -265,12 +267,12 @@ def Control_leds(num_led_right=19, num_led_left=6, num_led_warning=13):
                 if OUTPUT_LEDS[0] > 1:
                     GPIO.output(num_led_right,GPIO.LOW)
                 if OUTPUT_LEDS[1] > 1:
-                    GPIO.output(num_led_left,GPIO.HIGH)
+                    GPIO.output(num_led_left,GPIO.LOW)
                 if OUTPUT_LEDS[2] > 1:
                     GPIO.output(num_led_warning,GPIO.LOW)
         else:
             GPIO.output(num_led_right,GPIO.LOW)
-            GPIO.output(num_led_left,GPIO.HIGH)
+            GPIO.output(num_led_left,GPIO.LOW)
             GPIO.output(num_led_warning,GPIO.LOW)
         end_time = time.time()
         # elapsed_time = end_time - start_time
@@ -303,8 +305,8 @@ def main_process():
     CHECK_FRAME_FREEZE = np.zeros(NUM_CHECK_WARNING)
 
     # Connect Cam
-    #VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
-    VIDEO_PATH = '/home/pi/Desktop/video_test/traffic.mp4'
+    VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
+    # VIDEO_PATH = '/home/pi/Desktop/video_test/traffic.mp4'
 
     imW,imH = 1920,1080
     videostream = VideoStream(resolution=(imW,imH),framerate=25,STREAM_URL= VIDEO_PATH).start()
@@ -441,8 +443,8 @@ def main_process():
                 
             OUTPUT_LEDS = TEMP_LED
             print(f"Infor : {TEMP_LED} {index_count}" ) 
-            if (sum(TEMP_LED)>0):
-                videostream.savevideo()
+            # if (sum(TEMP_LED)>0):
+            #     videostream.savevideo()
 
             index_count+=1
             camera_thread_event.clear()

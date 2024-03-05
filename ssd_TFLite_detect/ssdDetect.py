@@ -141,6 +141,7 @@ class polygon_calculate():
             "Forbidden_right":False,
             "freeze" :False
         }
+        thread_even = 1
         try:
             for i in range(len(points)):
                 
@@ -149,15 +150,15 @@ class polygon_calculate():
                 
                 if self.isInside(polygon['left'], point_new):
                     point_Infor['Left'] = True
-                    if self.distance(point_new,point_old,self.points['left_check']) < -3:
+                    if self.distance(point_new,point_old,self.points['left_check']) < -thread_even:
                         point_Infor['Forbidden_left'] = True
-                    elif abs(self.distance(point_new,point_old,self.points['left_check'])) <3: 
+                    elif abs(self.distance(point_new,point_old,self.points['left_check'])) <thread_even and self.distance(point_new,point_old,self.points['left_check']) != 0.0: 
                         point_Infor['freeze'] = True
                 elif self.isInside(polygon['right'], point_new):
                     point_Infor['Right'] = True
-                    if self.distance(point_new,point_old,self.points['right_check'])<-3:
+                    if self.distance(point_new,point_old,self.points['right_check'])<-thread_even:
                         point_Infor['Forbidden_right'] = True
-                    elif abs(self.distance(point_new,point_old,self.points['right_check'])) < 3 : 
+                    elif abs(self.distance(point_new,point_old,self.points['right_check'])) < thread_even and self.distance(point_new,point_old,self.points['right_check']) != 0.0 : 
                         point_Infor['freeze'] = True
         except:
             print("len point : ", len(points_old),len(points))
@@ -179,7 +180,7 @@ class polygon_calculate():
         point_new =  Point(point_new) 
         point_old =  Point(point_old)
         point_check= Point(point_check)
-        #print("distance ",(point_check.distance(point_old) - point_check.distance(point_new)),"old : ",point_check.distance(point_old),"new : ", point_check.distance(point_new))
+        print("distance ",(point_check.distance(point_old) - point_check.distance(point_new)),"old : ",point_check.distance(point_old),"new : ", point_check.distance(point_new))
         return (point_check.distance(point_old) - point_check.distance(point_new))
     
     def cut_frame_polygon(self, frame):

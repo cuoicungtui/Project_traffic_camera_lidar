@@ -23,8 +23,8 @@ parser.add_argument('--path_save_json', help='Path save polygon jon',default="po
 args = parser.parse_args()
 
 # Open video file
-#VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
-VIDEO_PATH = '/home/pi/Desktop/video_test/traffic.mp4'
+VIDEO_PATH = 'rtsp://admin2:Atlab123@@192.168.1.64:554/Streaming/Channels/101'
+# VIDEO_PATH = '/home/pi/Desktop/video_test/traffic.mp4'
 
 VIDEO_NAME = args.video
 WIDTH_VIDEO = int(args.Width_video)

@@ -43,7 +43,7 @@ class VideoStream:
                 # print("Error Read Frame")
                 self.frame = frame
             else:
-                time.sleep(0.01)
+                # time.sleep(0.01)
                 continue
                 
             if self.save_video:
@@ -56,7 +56,7 @@ class VideoStream:
                     self.save_video = False
                     print("end save")
                 
-            time.sleep(0.01)
+            # time.sleep(0.01)
 # test lai
 
     def read(self):
