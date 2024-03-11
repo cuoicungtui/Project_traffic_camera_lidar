@@ -1,3 +1,6 @@
+Video thử nghiệm thiết bị tại khúc cua
+https://drive.google.com/drive/folders/1KCoUIlwTpEBFZACiYOTvcZe03B3vVmbf
+
 setup evenroment
 
 setup python 3.7 or 3.9
@@ -15,5 +18,6 @@ setup ros
 (disable serial Console)
 
 setup driver lidar
+
 
 
